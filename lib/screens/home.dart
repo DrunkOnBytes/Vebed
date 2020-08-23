@@ -11,13 +11,13 @@ import 'drawer.dart';
 
 class HospitalTile extends StatelessWidget {
 
-  final String hospital;
+  final String hospital, location, address;
   final Color color;
   final bool insurance;
   final int freeBeds, occupiedBeds, freeVentilators, occupiedVentilators;
 
-  HospitalTile({this.hospital, this.color, this.insurance, this.freeBeds,
-  this.occupiedBeds, this.freeVentilators, this.occupiedVentilators});
+  HospitalTile({this.hospital, this.color, this.insurance, this.freeBeds, this.address,
+  this.occupiedBeds, this.freeVentilators, this.occupiedVentilators, this.location});
 
   @override
   Widget build(BuildContext context) {
@@ -36,15 +36,27 @@ class HospitalTile extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  SizedBox(
-                    width: wd/2,
-                    child: Text(
-                      hospital,
-                      style: TextStyle(
-                        fontFamily: 'Rowdies',
-                        fontSize: 22,
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      SizedBox(
+                        width: wd/2,
+                        child: Text(
+                          hospital,
+                          style: TextStyle(
+                            fontFamily: 'Rowdies',
+                            fontSize: 22,
+                          ),
+                        ),
                       ),
-                    ),
+                      Text(
+                        address,
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontFamily: 'Lobster',
+                        ),
+                      ),
+                    ],
                   ),
                   Row(
                     children: [
@@ -178,6 +190,8 @@ class _HomeState extends State<Home> {
   String panelType = 'filter';
   List<bool> sortValues = [false, false,false, false];
   double ht,wd;
+  List<String> locations;
+  String currentLocation;
 
   Widget filterPanel(){
     return Card(
@@ -326,7 +340,14 @@ class _HomeState extends State<Home> {
         items.addAll(dummyListData);
       });
     }
-
+    setState(() {
+      List<HospitalTile> tempList = List.from(items);
+      for(HospitalTile i in items){
+        if(i.location!=currentLocation)
+          tempList.remove(i);
+      }
+      items = List.from(tempList);
+    });
   }
 
   Widget sortPanel(){
@@ -335,168 +356,166 @@ class _HomeState extends State<Home> {
         borderRadius: BorderRadius.circular(10.0),
         side: BorderSide(width: 3, color: Colors.lightGreen),
       ),
-      child: Table(
-        columnWidths: {1: FractionColumnWidth(0.55)},
-        border: TableBorder.symmetric(inside: BorderSide(color: Colors.black45, width: 0)),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          TableRow(
-            children: [
-              Padding(
-                padding: EdgeInsets.fromLTRB(15, 10,0,0),
-                child: Text('Free Beds', style: TextStyle(color: Colors.purple, fontSize: 16, fontWeight: FontWeight.bold),),
-              ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  GestureDetector(
-                    child: Row(
-                      children: [
-                        Theme(
-                          data: ThemeData(unselectedWidgetColor: Colors.deepOrange),
-                          child: Checkbox(
-                            checkColor: Colors.white,
-                            activeColor: Colors.lightGreen,
-                            value: sortValues[0],
-                            onChanged: (value){
-                              sortValues = [false,false,false,false];
-                              setState(() {
-                                sortValues[0]= value;
-                                sort();
-                              });
-                            },
-                          ),
-                        ),
-                        Text('Ascending Order', style: TextStyle(color: Colors.deepOrange, fontSize: 14, fontWeight: FontWeight.w600),),
-                      ],
-                    ),
-                    onTap: (){
-                        setState(() {
-                          if(sortValues[0] == false){
+          Expanded(
+            child: Column(
+              children: [
+                SizedBox(height: 20,),
+                Text('    Free Beds', style: TextStyle(color: Colors.purple, fontSize: 16, fontWeight: FontWeight.bold),),
+                Divider(thickness: 1,),
+                SizedBox(height: 10,),
+                GestureDetector(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Theme(
+                        data: ThemeData(unselectedWidgetColor: Colors.deepOrange),
+                        child: Checkbox(
+                          checkColor: Colors.white,
+                          activeColor: Colors.lightGreen,
+                          value: sortValues[0],
+                          onChanged: (value){
                             sortValues = [false,false,false,false];
-                            sortValues[0]= true;
-                          }
-                          else
-                            sortValues[0]= false;
-                          sort();
-                      });
-                    },
-                  ),
-                  GestureDetector(
-                    child: Row(
-                      children: [
-                        Theme(
-                          data: ThemeData(unselectedWidgetColor: Colors.deepOrange),
-                          child: Checkbox(
-                            checkColor: Colors.white,
-                            activeColor: Colors.lightGreen,
-                            value: sortValues[1],
-                            onChanged: (value){
-                              sortValues = [false,false,false,false];
-                              setState(() {
-                                sortValues[1]= value;
-                                sort();
-                              });
-                            },
-                          ),
+                            setState(() {
+                              sortValues[0]= value;
+                              sort();
+                            });
+                          },
                         ),
-                        Text('Descending Order', style: TextStyle(color: Colors.deepOrange, fontSize: 14, fontWeight: FontWeight.w600),),
-                      ],
-                    ),
-                    onTap: (){
+                      ),
+                      Icon(Icons.trending_up, color: Colors.deepOrange, size: 30,)
+                    ],
+                  ),
+                  onTap: (){
                       setState(() {
-                        if(sortValues[1] == false){
+                        if(sortValues[0] == false){
                           sortValues = [false,false,false,false];
-                          sortValues[1]= true;
+                          sortValues[0]= true;
                         }
                         else
-                          sortValues[1]= false;
+                          sortValues[0]= false;
                         sort();
-                      });
-                    },
+                    });
+                  },
+                ),
+                GestureDetector(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Theme(
+                        data: ThemeData(unselectedWidgetColor: Colors.deepOrange),
+                        child: Checkbox(
+                          checkColor: Colors.white,
+                          activeColor: Colors.lightGreen,
+                          value: sortValues[1],
+                          onChanged: (value){
+                            sortValues = [false,false,false,false];
+                            setState(() {
+                              sortValues[1]= value;
+                              sort();
+                            });
+                          },
+                        ),
+                      ),
+                      Icon(Icons.trending_down, color: Colors.deepOrange, size: 30,)
+                    ],
                   ),
-                ],
-              ),
-            ],
+                  onTap: (){
+                    setState(() {
+                      if(sortValues[1] == false){
+                        sortValues = [false,false,false,false];
+                        sortValues[1]= true;
+                      }
+                      else
+                        sortValues[1]= false;
+                      sort();
+                    });
+                  },
+                ),
+              ],
+            ),
           ),
-          TableRow(
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(15, 10,0,0),
-                child: Text('Free Ventilators', style: TextStyle(color: Colors.purple, fontSize: 16, fontWeight: FontWeight.bold),),
-              ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  GestureDetector(
-                    child: Row(
-                      children: [
-                        Theme(
-                          data: ThemeData(unselectedWidgetColor: Colors.deepOrange),
-                          child: Checkbox(
-                            checkColor: Colors.white,
-                            activeColor: Colors.lightGreen,
-                            value: sortValues[2],
-                            onChanged: (value){
-                              sortValues = [false,false,false,false];
-                              setState(() {
-                                sortValues[2]= value;
-                                sort();
-                              });
-                            },
-                          ),
+          VerticalDivider(thickness: 1, width: 0,),
+          Expanded(
+            child: Column( 
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                SizedBox(height: 20,),
+                Text(' Free Ventilators', style: TextStyle(color: Colors.purple, fontSize: 16, fontWeight: FontWeight.bold),),
+                Divider(thickness: 1,),
+                SizedBox(height: 10,),
+                GestureDetector(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Theme(
+                        data: ThemeData(unselectedWidgetColor: Colors.deepOrange),
+                        child: Checkbox(
+                          checkColor: Colors.white,
+                          activeColor: Colors.lightGreen,
+                          value: sortValues[2],
+                          onChanged: (value){
+                            sortValues = [false,false,false,false];
+                            setState(() {
+                              sortValues[2]= value;
+                              sort();
+                            });
+                          },
                         ),
-                        Text('Ascending Order', style: TextStyle(color: Colors.deepOrange, fontSize: 14, fontWeight: FontWeight.w600),),
-                      ],
-                    ),
-                    onTap: (){
-                      setState(() {
-                        if(sortValues[2] == false){
-                          sortValues = [false,false,false,false];
-                          sortValues[2]= true;
-                        }
-                        else
-                          sortValues[2]= false;
-                        sort();
-                      });
-                    },
+                      ),
+                      Icon(Icons.trending_up, color: Colors.deepOrange, size: 30,)
+                    ],
                   ),
-                  GestureDetector(
-                    child: Row(
-                      children: [
-                        Theme(
-                          data: ThemeData(unselectedWidgetColor: Colors.deepOrange),
-                          child: Checkbox(
-                            checkColor: Colors.white,
-                            activeColor: Colors.lightGreen,
-                            value: sortValues[3],
-                            onChanged: (value){
-                              sortValues = [false,false,false,false];
-                              setState(() {
-                                sortValues[3]= value;
-                                sort();
-                              });
-                            },
-                          ),
+                  onTap: (){
+                    setState(() {
+                      if(sortValues[2] == false){
+                        sortValues = [false,false,false,false];
+                        sortValues[2]= true;
+                      }
+                      else
+                        sortValues[2]= false;
+                      sort();
+                    });
+                  },
+                ),
+                GestureDetector(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Theme(
+                        data: ThemeData(unselectedWidgetColor: Colors.deepOrange),
+                        child: Checkbox(
+                          checkColor: Colors.white,
+                          activeColor: Colors.lightGreen,
+                          value: sortValues[3],
+                          onChanged: (value){
+                            sortValues = [false,false,false,false];
+                            setState(() {
+                              sortValues[3]= value;
+                              sort();
+                            });
+                          },
                         ),
-                        Text('Descending Order', style: TextStyle(color: Colors.deepOrange, fontSize: 14, fontWeight: FontWeight.w600),),
-                      ],
-                    ),
-                    onTap: (){
-                      setState(() {
-                        if(sortValues[3] == false){
-                          sortValues = [false,false,false,false];
-                          sortValues[3]= true;
-                        }
-                        else
-                          sortValues[3]= false;
-                        sort();
-                      });
-                    },
+                      ),
+                      Icon(Icons.trending_down, color: Colors.deepOrange, size: 30,)
+                    ],
                   ),
-                  SizedBox(height: ht/3.35,),
-                ],
-              ),
-            ],
+                  onTap: (){
+                    setState(() {
+                      if(sortValues[3] == false){
+                        sortValues = [false,false,false,false];
+                        sortValues[3]= true;
+                      }
+                      else
+                        sortValues[3]= false;
+                      sort();
+                    });
+                  },
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -517,6 +536,7 @@ class _HomeState extends State<Home> {
 
   Future fetchData() async{
     List hospitals;
+    List<String> loc = List();
     int totalBeds=0, totalVnts=0, occupiedBeds=0, occupiedVnts=0;
     double freeBeds, freeVnts;
     String url = 'https://venbedapi.azurewebsites.net/mobileapi/dashboard/main';
@@ -528,13 +548,16 @@ class _HomeState extends State<Home> {
         totalVnts+=hospital['totalVentilators'];
         occupiedBeds+=hospital['occupiedBeds'];
         occupiedVnts+=hospital['occupiedVnts'];
+        if(!loc.contains(hospital['location']))
+          loc.add(hospital['location']);
       }
+
       freeBeds = (totalBeds-occupiedBeds)/totalBeds*100;
       print('Beds '+(totalBeds-occupiedBeds).toString()+' '+totalBeds.toString());
       freeVnts = (totalVnts-occupiedVnts)/totalVnts*100;
       print('Vnts '+(totalVnts-occupiedVnts).toString()+' '+totalVnts.toString());
     }
-    return [hospitals, freeBeds, freeVnts];
+    return [hospitals, freeBeds, freeVnts, loc];
   }
 
   void refresh(){
@@ -549,16 +572,26 @@ class _HomeState extends State<Home> {
             HospitalTile(
               hospital: data[i]['hospital'],
               insurance: (data[i]['insurance']=='Yes'),
+              location: data[i]['location'],
               color: color[i%5],
               freeBeds: (data[i]['totalBeds']-data[i]['occupiedBeds']),
               occupiedBeds: data[i]['occupiedBeds'],
               freeVentilators: (data[i]['totalVentilators']-data[i]['occupiedVnts']),
               occupiedVentilators: data[i]['occupiedVnts'],
+              address: data[i]['address'],
             ),
           );
         }
         sortValues[1] = true;
-        allHospitals.sort((a, b) => -(a.freeBeds).compareTo(b.freeBeds));        items.addAll(allHospitals);
+        locations = List.from(value[3]);
+        currentLocation = locations[0];
+        allHospitals.sort((a, b) => -(a.freeBeds).compareTo(b.freeBeds));
+        List<HospitalTile> tempList = List.from(allHospitals);
+        for(HospitalTile i in allHospitals){
+          if(i.location!=currentLocation)
+            tempList.remove(i);
+        }
+        items = List.from(tempList);
         Timer(
             Duration(seconds: 1, milliseconds: 300),
                 (){
@@ -723,9 +756,58 @@ class _HomeState extends State<Home> {
                         ]
                       ),
                     ),
-//                    SizedBox(height: 10),
                     Divider(color: Colors.deepOrange, height: 0, thickness: 0.7,),
-
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 10),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: [
+                          Text(
+                            'Location:',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontFamily: 'Rowdies'
+                            ),
+                          ),
+                          DropdownButtonHideUnderline(
+                            child: DropdownButton<String>(
+                              underline: null,
+                              value: currentLocation,
+                              icon: Icon(Icons.arrow_drop_down),
+                              iconSize: 27,
+                              elevation: 16,
+                              style: TextStyle(
+                                  fontSize: 18,
+                                  color: Colors.black,
+                                  fontFamily: 'Lobster'
+                              ),
+                              onChanged: (String newValue) {
+                                setState(() {
+                                  currentLocation = newValue;
+                                  List<HospitalTile> tempList = List.from(allHospitals);
+                                  for(HospitalTile i in allHospitals){
+                                    if(i.location!=currentLocation)
+                                      tempList.remove(i);
+                                  }
+                                  items = List.from(tempList);
+                                  sortValues = [false,false,false,false];
+                                  filterValues = [false,false,false];
+                                  sortValues[1] = true;
+                                });
+                              },
+                              items: locations
+                                  .map<DropdownMenuItem<String>>((String value) {
+                                return DropdownMenuItem<String>(
+                                  value: value,
+                                  child: Text(value,),
+                                );
+                              }).toList(),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Divider(color: Colors.deepOrange, height: 0, thickness: 0.7,),
                   ],
                 ),
               ),
